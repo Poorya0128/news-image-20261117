@@ -8,63 +8,60 @@ shown with its source.
 """
 
 LEAD = [
-    {"art": "kerch", "region": "EUROPE", "beat": "UKRAINE WAR", "src": "REUTERS \u00b7 AP", "ok": "C",
+    {"art": "kerch", "checked": ['Reuters', 'AP', 'Guardian', 'Kyiv Independent', 'ISW'], "region": "EUROPE", "beat": "UKRAINE WAR", "src": "REUTERS \u00b7 AP", "ok": "C",
      "at": (36.5, 45.3),
      "hed": "Ukraine brings down a road span of the Crimean Bridge",
-     "dek": ("After a second night of strikes the central road section fell into the "
-             "Kerch Strait, two days before Putin meets Trump and Xi.")},
-    {"art": "gulf17", "region": "MIDDLE EAST", "beat": "IRAN WAR", "src": "AP \u00b7 REUTERS", "ok": "C",
+     "dek": "The central road section fell into the Kerch Strait after a second night of strikes."},
+    {"art": "gulf17", "checked": ['AP', 'NPR', 'LA Times', 'CBS'], "region": "MIDDLE EAST", "beat": "IRAN WAR", "src": "AP \u00b7 REUTERS", "ok": "C",
      "at": (50.55, 26.05),
      "hed": "Iran sends drones at a US radar in Bahrain; US hits back",
-     "dek": ("Bahrain intercepts a third Iranian attack in days, with no damage. "
-             "US jets then strike a missile site on Iran's Qeshm Island.")},
-    {"art": "quad", "region": "ASIA", "beat": "DIPLOMACY", "src": "AFP \u00b7 AL JAZEERA", "ok": "C",
+     "dek": "Bahrain intercepts a third attack in days; US jets then hit a missile site on Qeshm."},
+    {"art": "quad", "checked": ['Al Jazeera', 'Guardian', 'Gulf News', 'Straits Times'], "region": "ASIA", "beat": "DIPLOMACY", "src": "AFP \u00b7 AL JAZEERA", "ok": "C",
      "at": (121.0, 14.6),
      "hed": "First Quad summit in two years signs minerals deals",
-     "dek": ("Trump, Modi, Takaichi and Albanese meet in Manila and plan a first "
-             "joint maritime patrol in 2027; the statement names no country.")},
+     "dek": "Trump, Modi, Takaichi and Albanese plan a first joint maritime patrol in 2027."},
 ]
 
 MAJOR = [
-    {"art": "measles", "region": "AMERICAS", "beat": "HEALTH", "src": "PAHO", "ok": "C",
+    {"art": "measles", "checked": ['PAHO', 'Reuters', 'CNBC', 'Al Jazeera'], "region": "AMERICAS", "beat": "HEALTH", "src": "PAHO", "ok": "C",
      "at": (-98.0, 39.0),
      "hed": "US, Mexico and Bolivia lose measles-free status",
      "dek": "PAHO: the virus spread for over a year; the US had held it for 26."},
-    {"art": "mongolia", "region": "ASIA", "beat": "POLITICS", "src": "AP \u00b7 REUTERS", "ok": "C",
+    {"art": "mongolia", "checked": ['AP', 'Reuters', 'Montsame', 'Independent'], "region": "ASIA", "beat": "POLITICS", "src": "AP \u00b7 REUTERS", "ok": "C",
      "at": (106.9, 47.9),
      "hed": "Mongolia's president says he will resign",
      "dek": "Khurelsukh denies taking a $25m bribe over a railway deal."},
-    {"art": "serbia", "region": "EUROPE", "beat": "POLITICS", "src": "REUTERS", "ok": "C",
+    {"art": "serbia", "checked": ['Reuters', 'RFE/RL', 'Euronews', 'Guardian', 'BIRN'], "region": "EUROPE", "beat": "POLITICS", "src": "REUTERS", "ok": "C",
      "at": (20.46, 44.8),
      "hed": "Serbia's student MPs take their seats",
      "dek": "The Student List holds 140 of 250 seats, ending 14 years of SNS rule."},
-    {"art": "prague", "region": "EUROPE", "beat": "RAIL", "src": "EURONEWS \u00b7 SKY", "ok": "C",
+    {"art": "prague", "checked": ['Euronews', 'Sky', 'Telegraph', 'Anadolu'], "region": "EUROPE", "beat": "RAIL", "src": "EURONEWS \u00b7 SKY", "ok": "C",
      "at": (14.44, 50.08),
      "hed": "Two trains collide in Prague; 46 injured",
      "dek": "Four are badly hurt; one train may have passed a red signal."},
-    {"art": "dow", "region": "AMERICAS", "beat": "MARKETS", "src": "CNBC \u00b7 NVIDIA", "ok": "C",
+    {"art": "dow", "checked": ['CNBC', 'Reuters', 'AP', 'Nvidia'], "region": "AMERICAS", "beat": "MARKETS", "src": "CNBC \u00b7 NVIDIA", "ok": "C",
      "at": (-74.0, 40.7),
      "hed": "Dow sheds 849 points; then Nvidia beats",
      "dek": "After the close Nvidia reports $115.8bn revenue, up 103%."},
 ]
 
 KEY = [
-    {"thumb": "plane", "region": "EUROPE", "src": "RUSSIAN MoD", "ok": "C", "at": (86.1, 55.3),
-     "kicker": "SIBERIA", "hed": "Russian An-12 crash kills all 19 aboard"},
-    {"thumb": "bridge", "region": "EUROPE", "src": "KYIV MAYOR", "ok": "C", "at": (30.5, 50.45),
-     "kicker": "KYIV", "hed": "Missiles hit two Dnipro bridges; water cut"},
-    {"thumb": "gavel", "region": "AFRICA", "src": "REUTERS \u00b7 AP", "ok": "C", "at": (32.6, -25.97),
-     "kicker": "MAPUTO", "hed": "Opposition leader Mondlane goes on trial"},
-    {"thumb": "factory", "region": "ASIA", "src": "AFP", "ok": "C", "at": (90.26, 23.85),
-     "kicker": "SAVAR, BANGLADESH", "hed": "Police tear-gas garment wage protest"},
-    {"thumb": "hemicycle", "region": "MIDDLE EAST", "src": "TIMES OF ISRAEL", "ok": "C", "at": (35.2, 31.78),
-     "kicker": "JERUSALEM", "hed": "Knesset elects Eisenkot ally speaker, 66\u201352"},
-    {"thumb": "jet", "region": "ASIA", "src": "JAPAN MoD", "ok": "C", "at": (130.1, 34.2),
-     "kicker": "FUKUOKA, JAPAN", "hed": "Jets scrambled as Russian planes stray in"},
-    {"thumb": "dove", "region": "MIDDLE EAST", "src": "AP \u00b7 REUTERS", "ok": "C", "at": (34.45, 31.5),
-     "kicker": "GAZA", "hed": "Board of Peace warns truce may collapse"},
-    {"thumb": "chart", "region": "EUROPE", "src": "UN HRMMU", "ok": "C", "at": (31.0, 49.0),
-     "kicker": "UKRAINE", "hed": "UN: 2026 civilian deaths top all of 2025"},
+    {"thumb": "plane", "checked": ['Russian MoD', 'Al Jazeera', 'NBC', 'The Hindu'], "region": "EUROPE", "src": "RUSSIAN MoD", "ok": "C", "at": (86.1, 55.3),
+     "kicker": "SIBERIA", "hed": "An-12 crash kills all 19 aboard"},
+    {"thumb": "bridge", "checked": ['Kyiv mayor', 'Reuters', 'CBS', 'Kyiv Independent'], "region": "EUROPE", "src": "KYIV MAYOR", "ok": "C", "at": (30.5, 50.45),
+     "kicker": "KYIV", "hed": "Russia hits 2 bridges; water cut"},
+    {"thumb": "gavel", "checked": ['Reuters', 'AP', 'Al Jazeera', 'Africanews'], "region": "AFRICA", "src": "REUTERS \u00b7 AP", "ok": "C", "at": (32.6, -25.97),
+     "kicker": "MAPUTO", "hed": "Opposition's Mondlane on trial"},
+    {"thumb": "factory", "checked": ['AFP', 'Al Jazeera', 'Dhaka Tribune'], "region": "ASIA", "src": "AFP", "ok": "C", "at": (90.26, 23.85),
+     "kicker": "SAVAR, BANGLADESH", "hed": "Police tear-gas wage protest"},
+    {"thumb": "hemicycle", "checked": ['Reuters', 'Times of Israel', 'JPost', 'ABC'], "region": "MIDDLE EAST", "src": "TIMES OF ISRAEL", "ok": "C", "at": (35.2, 31.78),
+     "kicker": "JERUSALEM", "hed": "Knesset picks Kahana, 66\u201352"},
+    {"thumb": "jet", "checked": ['Japan MoD', 'AP', 'Reuters', 'NHK'], "region": "ASIA", "src": "JAPAN MoD", "ok": "C", "at": (130.1, 34.2),
+     "kicker": "FUKUOKA, JAPAN", "hed": "Jets scrambled at airspace breach"},
+    {"thumb": "dove", "checked": ['AP', 'Reuters', 'Al Jazeera'], "region": "MIDDLE EAST", "src": "AP \u00b7 REUTERS", "ok": "C", "at": (34.45, 31.5),
+     "kicker": "GAZA", "hed": "Peace board: truce may collapse"},
+    {"thumb": "chart", "checked": ['UN HRMMU', 'Kyiv Post', 'Ukrainska Pravda'], "region": "EUROPE", "src": "UN HRMMU", "ok": "C", "at": (31.0, 49.0),
+     "kicker": "UKRAINE", "hed": "UN: 2026 deaths already top 2025"},
 ]
 
 # Tier 4: (place, text, region, (lon, lat), ok)
@@ -135,6 +132,12 @@ def all_stories():
     for b in BRIEFS:
         out.append((n, {"place": b[0], "hed": b[1], "region": b[2], "at": b[3], "ok": b[4]})); n += 1
     return out
+
+
+def cross_checks():
+    """(stories, reports) behind the source meters."""
+    top = LEAD + MAJOR + KEY
+    return len(top), sum(len(s["checked"]) for s in top)
 
 
 def count():

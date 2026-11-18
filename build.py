@@ -172,9 +172,20 @@ TEXT_SIZES = []
 MIN_TEXT = 12
 
 
+TEXT_BOXES = []           # (x0, y0, x1, y1, string) of every text, in page pixels
+
+
+def _record(x, y, s, f, anchor, total=None):
+    l, t, r, b = f.getbbox(s, anchor=anchor if total is None else "l" + anchor[1])
+    x0, x1 = x + l / S, x + (r / S if total is None else total)
+    TEXT_BOXES.append((x0, y + t / S, x1, y + b / S, s))
+
+
 def text(x, y, s, f, fill, anchor="la", tracking=0):
     TEXT_SIZES.append((f.size / S, s))
     if tracking == 0:
+        if s.strip():
+            _record(x, y, s, f, anchor)
         d.text(p(x, y), s, font=f, fill=fill, anchor=anchor)
         return tlen(s, f)
     total = tlen(s, f, tracking)
@@ -182,6 +193,8 @@ def text(x, y, s, f, fill, anchor="la", tracking=0):
         x -= total
     elif anchor[0] == "m":
         x -= total / 2
+    if s.strip():
+        _record(x, y, s, f, anchor, total)
     for ch in s:
         d.text(p(x, y), ch, font=f, fill=fill, anchor="l" + anchor[1])
         x += f.getlength(ch) / S + tracking
@@ -933,7 +946,7 @@ def art_gulf17(x, y, w, h):
     lab = cond(12.5, 900)
     text(*P(54.0, 29.7), "IRAN", lab, (160, 176, 214), anchor="mm", tracking=1.2)
     text(bh[0] - 4, bh[1] + 9, "BAHRAIN \u00b7 US RADAR", cond(11.5, 900), (255, 236, 190), anchor="ma", tracking=0.5)
-    text(qs[0] - 4, qs[1] + 11, "QESHM \u00b7 US STRIKE", cond(11.5, 900), (190, 214, 255), anchor="ma", tracking=0.5)
+    text(qs[0] - 4, qs[1] + 15, "QESHM \u00b7 US STRIKE", cond(11.5, 900), (190, 214, 255), anchor="ma", tracking=0.5)
     text(x + 8, y + 6, "INTERCEPTED", cond(11.5, 900), (255, 220, 150), tracking=0.6)
 
 
@@ -991,15 +1004,17 @@ def art_serbia(x, y, w, h):
     vgrad(x, y, x + w, y + h, (240, 232, 214), (224, 212, 188))
     cx, cy = x + w / 2, y + h - 4
     seats = []
+    # keep the outer row clear of the two labels along the top edge
+    sc = min(1.0, (h - 24) / 34)
     for row, (rr, n) in enumerate(((13, 30), (20, 44), (27, 58), (34, 72))):
         for k in range(n):
             a = math.pi - math.pi * (k + 0.5) / n
-            seats.append((a, cx + rr * math.cos(a) * 2.2, cy - rr * math.sin(a)))
+            seats.append((a, cx + rr * math.cos(a) * 2.2, cy - rr * sc * math.sin(a)))
     seats.sort(key=lambda s: -s[0])
     for i, (a, sx, sy) in enumerate(seats[:250]):
         col = (36, 84, 166) if i < 140 else ((178, 34, 34) if i < 243 else (150, 150, 150))
         ellipse(sx, sy, 1.6, 1.6, fill=col)
-    text(x + 6, y + 4, "STUDENTS 140", cond(11.5, 900), (36, 84, 166))
+    text(x + 6, y + 4, "140 STUDENT LIST", cond(11.5, 900), (36, 84, 166))
     text(x + w - 6, y + 4, "103 SNS", cond(11.5, 900), (178, 34, 34), anchor="ra")
 
 
@@ -1090,6 +1105,27 @@ def thumb(kind, x, y, s, col):
         line([(cx - 16 * u, cy + 13.5 * u), (cx + 16 * u, cy + 13.5 * u)], wc, 1.4 * u)
 
 
+def meter(x, y, names, maxw, size=11, col=None):
+    """Source meter: one square per independent outlet that reported it (max 5), then their names."""
+    n = len(names)
+    c = col or OKC
+    for k in range(5):
+        fill = c if k < n else (214, 208, 196)
+        rect(x + k * 7, y + 3, x + k * 7 + 5, y + 9, fill=fill)
+    tx = x + 5 * 7 + 4
+    room = x + maxw - tx
+    f = font("sans", size, 700, 75)
+    shown = list(names)
+    while shown:
+        extra = n - len(shown)
+        s_ = " \u00b7 ".join(shown) + (" +%d" % extra if extra else "")
+        if tlen(s_, f) <= room:
+            text(tx, y - 0.5, s_, f, INK2)
+            return
+        shown.pop()
+    text(tx, y - 0.5, "%d outlets" % n, f, INK2)
+
+
 # ------------------------------------------------------------------ page
 M = 22
 R = W - M
@@ -1108,23 +1144,25 @@ def masthead():
     rect(0, 0, W, 124, fill=BAND)
     f = cond(13, 900)
     text(M, 9, "THE WORLD'S DAY, CHECKED", f, GOLD, tracking=1.8)
-    text(R, 9, "%d STORIES \u00b7 6 CONTINENTS \u00b7 EVERY ONE DATED AND SOURCED" % st.count(), f,
+    nst, nrep = st.cross_checks()
+    text(R, 9, "%d STORIES \u00b7 6 CONTINENTS \u00b7 TOP %d CROSS-CHECKED IN %d REPORTS" % (st.count(), nst, nrep), f,
          (200, 206, 226), anchor="ra", tracking=1.2)
     title = "Tuesday 17 November 2026"
     for sz in range(92, 50, -1):
         tf = serif(sz, 900, 100)
-        if tlen(title, tf) <= R - M:
+        bottom = 22 + tf.getbbox(title, anchor="la")[3] / S
+        if tlen(title, tf) <= R - M and bottom + 3 + 18 <= 122:
             break
     text(M - 2, 22, title, tf, (255, 255, 255))
-    y = 22 + sz * 1.10
+    y = bottom + 3
     text(M, y, st.JUDGE_NOTE, serif_i(13.5, 600), (214, 220, 238))
     # verification legend
-    lf = cond(12.5, 900)
+    lf = cond(14, 900)
     x = R
     for ok, lab in (("A", "CLAIM BY ONE SIDE, ATTRIBUTED"), ("C", "CONFIRMED")):
         tw = tlen(lab, lf, 0.8)
         text(x, y + 1, lab, lf, (230, 232, 240), anchor="ra", tracking=0.8)
-        okmark(x - tw - 10, y + 8.5, ok, 6.5)
+        okmark(x - tw - 11, y + 9.5, ok, 7)
         x -= tw + 30
     rect(0, 124, W, 127, fill=GOLD)
     return 127
@@ -1136,40 +1174,60 @@ def region_bar(y):
         counts[s["region"]] = counts.get(s["region"], 0) + 1
     regs = [r for r in st.REGIONS if counts.get(r)]
     total = sum(counts[r] for r in regs)
-    bf = cond(12, 900)
+    bf = cond(14.5, 900)
     need = {r: tlen("%s %d" % (r, counts[r]), bf, 0.8) + 16 for r in regs}
     spare = (R - M) - sum(need.values())
     x = M
     for r in regs:
         bw = need[r] + spare * counts[r] / total
-        rect(x, y, x + bw - 2, y + 18, fill=REG[r])
+        rect(x, y, x + bw - 2, y + 21, fill=REG[r])
         text(x + bw / 2 - 1, y + 2, "%s %d" % (r, counts[r]), bf, (255, 255, 255), anchor="ma", tracking=0.8)
         x += bw
-    return y + 18
+    return y + 21
 
 
 def ribbon(y):
     """The 24 hours of 17 November in UTC, with the events whose times the sources give."""
     x0, x1 = M + 4, R - 4
-    text(M, y, "THE DAY IN UTC", cond(11.5, 900), INK, tracking=1)
-    ax = y + 40
+    text(M, y, "THE DAY IN UTC", cond(14, 900), INK, tracking=1)
+    lab = "= NEWS OUTLETS WE FOUND REPORTING IT"
+    lf_ = cond(11.5, 900)
+    lw_ = tlen(lab, lf_, 0.4)
+    lx = R - lw_ - 40
+    for k in range(5):
+        rect(lx + k * 7, y + 4, lx + k * 7 + 5, y + 10, fill=OKC if k < 4 else (214, 208, 196))
+    text(R, y + 0.5, lab, lf_, INK2, anchor="ra", tracking=0.4)
+    ax = y + 54
     line([(x0, ax), (x1, ax)], INK, 1.6)
     for hh in range(0, 25, 3):
         xx = x0 + (x1 - x0) * hh / 24
         line([(xx, ax - 3), (xx, ax + 3)], INK, 1)
-        text(xx, ax + 5, "%02d:00" % hh, cond(10, 700), GREY, anchor="ma" if 0 < hh < 24 else ("la" if hh == 0 else "ra"))
-    lf = cond(11.5, 900)
-    tiers = [ax - 34, ax - 19]
-    for i, (t, tm, lab, reg) in enumerate(st.TIMELINE):
+        text(xx, ax + 5, "%02d:00" % hh, cond(12, 800), GREY, anchor="ma" if 0 < hh < 24 else ("la" if hh == 0 else "ra"))
+    lf = cond(13.5, 900)
+    tiers = [ax - 52, ax - 35, ax - 18]
+    # The two US events are 20 minutes apart, so they share one label on one
+    # tier; no stem then has to pass through another label.
+    tier_of = [0, 1, 2, 1, 1]
+    right_of = [False, False, True, True, True]
+    tl = st.TIMELINE
+    for i, (t, tm, lab, reg) in enumerate(tl):
         xx = x0 + (x1 - x0) * t / 24
         col = REG[reg]
-        ly = tiers[i % 2]
-        line([(xx, ly + 13), (xx, ax)], col, 0.9)
-        s_ = tm + " " + lab
-        right = t > 18
-        text(xx + (-4 if right else 4), ly, s_, lf, col, anchor="ra" if right else "la")
-        ellipse(xx, ax, 4.6, 4.6, fill=col, outline=(255, 255, 255), width=1.2)
-    return ax + 18
+        ly = tiers[tier_of[i]]
+        line([(xx, ly + 15), (xx, ax)], col, 0.9)
+        if i == len(tl) - 2:
+            pass  # label drawn together with the next event
+        else:
+            s_ = tm + " " + lab
+            if i == len(tl) - 1:
+                p = tl[i - 1]
+                s_ = p[1] + " " + p[2] + " \u00b7 " + s_
+            right = right_of[i]
+            text(xx + (-4 if right else 4), ly, s_, lf, col, anchor="ra" if right else "la")
+    for t, tm, lab, reg in tl:
+        xx = x0 + (x1 - x0) * t / 24
+        ellipse(xx, ax, 4.6, 4.6, fill=REG[reg], outline=(255, 255, 255), width=1.2)
+    return ax + 20
 
 
 def lead_card(x, y, w, art_h, n, s):
@@ -1180,7 +1238,6 @@ def lead_card(x, y, w, art_h, n, s):
     pin(x + 8, yy + 7, n, col, r=8)
     text(x + 21, yy, s["region"] + " \u00b7 " + s["beat"], cond(12.5, 800), col, tracking=0.6)
     okmark(x + w - 7, yy + 7, s["ok"], 6.5)
-    text(x + w - 18, yy, s["src"], cond(11, 700), GREY, anchor="ra", tracking=0.4)
     yy += 18
     hf = serif(21, 900)
     for ln in wrap(s["hed"], hf, w):
@@ -1188,10 +1245,13 @@ def lead_card(x, y, w, art_h, n, s):
         yy += 23.5
     yy += 2
     df = sans(13, 500, 87.5)
-    for ln in wrap(s["dek"], df, w):
+    lines = wrap(s["dek"], df, w)
+    assert len(lines) <= 2, s["dek"]
+    for ln in lines:
         text(x, yy, ln, df, INK2)
         yy += 17
-    return yy
+    meter(x, yy + 2, s["checked"], w, 11.5)
+    return yy + 18
 
 
 def major_card(x, y, w, art_h, n, s):
@@ -1212,31 +1272,39 @@ def major_card(x, y, w, art_h, n, s):
     for ln in wrap(s["dek"], df, w):
         text(x, yy, ln, df, INK2)
         yy += 15
-    text(x, yy + 1, s["src"], cond(10.5, 700), GREY, tracking=0.4)
+    meter(x, yy + 1, s["checked"], w, 10.5)
     return yy + 14
 
 
 def key_box(x, y, w, h, n, s):
     col = REG[s["region"]]
     rrect(x, y, x + w, y + h, 5, fill=PAPER2, outline=RULE, width=0.8)
-    thumb(s["thumb"], x + 5, y + 5, h - 10, col)
-    tx = x + h + 2
+    ts = 40
+    thumb(s["thumb"], x + 5, y + (h - ts) / 2, ts, col)
+    tx = x + ts + 12
     pin(tx + 7, y + 12, n, col, r=7)
-    text(tx + 18, y + 5, s["kicker"], cond(11.5, 900), col, tracking=0.5)
-    okmark(x + w - 9, y + 12, s["ok"], 5.5)
+    text(tx + 18, y + 4, s["kicker"], cond(13, 900), col, tracking=0.5)
+    okmark(x + w - 9, y + 12, s["ok"], 5.8)
     maxw = x + w - 6 - tx
-    for wd in (80, 75, 70, 66, 62):
-        hf = font("sans", 13.5, 750, wd)
-        if tlen(s["hed"], hf) <= maxw:
+    hf = None
+    for size in (16, 15.5, 15, 14.5, 14, 13.5):
+        for wd in (80, 75, 70, 66, 62):
+            f_ = font("sans", size, 750, wd)
+            if tlen(s["hed"], f_) <= maxw:
+                hf = f_
+                break
+        if hf:
             break
-    text(tx, y + 23, s["hed"], hf, INK)
-    text(tx, y + 39, s["src"], cond(10, 700), GREY, tracking=0.4)
+    assert hf is not None, s["hed"]
+    text(tx, y + 22, s["hed"], hf, INK)
+    meter(tx, y + 42, s["checked"], x + w - 6 - tx, 10.5)
 
 
-def map_block(x0, y0, w):
+def map_block(x0, y0, w, mapw=None):
     text(x0, y0, "WHERE IT HAPPENED", cond(12.5, 900), INK, tracking=1.2)
     my = y0 + 18
     lat0, lat1 = 72.0, -45.0
+    w = mapw or w
     h = round(w * (lat0 - lat1) / 360)
 
     def P(lo, la):
@@ -1287,7 +1355,7 @@ def date_check(x0, y0, w, y1):
     for item in st.LEFT_OUT:
         line([(x0 + 10, yy + 7), (x0 + 16, yy + 7)], (178, 34, 34), 1.6)
         text(x0 + 21, yy, item, f, INK2)
-        yy += 15.5
+        yy += 15
 
 
 def also_block(x0, y0, x1, y_end):
@@ -1324,25 +1392,40 @@ def footer():
     text(R, 1007, st.SOURCES, f, GREY, anchor="ra")
 
 
+def check_overlaps(tol=0.6):
+    """Fail the build if any two pieces of text overlap, or text leaves the page."""
+    bad = []
+    boxes = TEXT_BOXES
+    for i in range(len(boxes)):
+        a = boxes[i]
+        if a[0] < -0.5 or a[1] < -0.5 or a[2] > W + 0.5 or a[3] > H + 0.5:
+            bad.append(("off page", a[4]))
+        for j in range(i + 1, len(boxes)):
+            b = boxes[j]
+            if (min(a[2], b[2]) - max(a[0], b[0]) > tol and min(a[3], b[3]) - max(a[1], b[1]) > tol):
+                bad.append((a[4], b[4]))
+    return bad
+
+
 def build():
     y = masthead() + 6
     y = region_bar(y) + 6
     y = ribbon(y) + 4
     gap = 16
     lw = (R - M - gap * 2) / 3
-    ends = [lead_card(M + i * (lw + gap), y, lw, 100, i + 1, s) for i, s in enumerate(st.LEAD)]
+    ends = [lead_card(M + i * (lw + gap), y, lw, 84, i + 1, s) for i, s in enumerate(st.LEAD)]
     y = max(ends) + 6
     line([(M, y), (R, y)], RULE, 1)
     y += 7
     gap = 12
     cw = (R - M - gap * 4) / 5
     n0 = len(st.LEAD) + 1
-    ends = [major_card(M + c * (cw + gap), y, cw, 56, n0 + c, s) for c, s in enumerate(st.MAJOR)]
+    ends = [major_card(M + c * (cw + gap), y, cw, 52, n0 + c, s) for c, s in enumerate(st.MAJOR)]
     y = max(ends) + 6
     n0 += len(st.MAJOR)
     gap = 10
     kw = (R - M - gap * 3) / 4
-    kh = 50
+    kh = 57
     for i, s in enumerate(st.KEY):
         r, c = divmod(i, 4)
         key_box(M + c * (kw + gap), y + r * (kh + 6), kw, kh, n0 + i, s)
@@ -1350,10 +1433,17 @@ def build():
     line([(M, y), (R, y)], INK, 1.4)
     y += 7
     mw = 300
-    map_end = map_block(M, y, mw)
+    map_end = map_block(M, y, mw, 272)
+    assert map_end + 8 + 44 + 15 * len(st.LEFT_OUT) <= 997, ("date check does not fit", map_end)
     date_check(M, map_end + 8, mw, 997)
     also_block(M + mw + 20, y, R, 998)
     footer()
+    bad = check_overlaps()
+    if bad:
+        for pair in bad[:40]:
+            print("OVERLAP:", pair)
+        raise SystemExit("%d text overlaps" % len(bad))
+    print("overlap check: %d texts, none overlap" % len(TEXT_BOXES))
 
     out = img.resize((W, H), Image.LANCZOS)
     buf = io.BytesIO()
